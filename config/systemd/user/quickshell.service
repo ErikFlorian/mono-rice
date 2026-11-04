@@ -1,0 +1,16 @@
+[Unit]
+Description=Quickshell (monochrome rice shell)
+PartOf=graphical-session.target
+After=graphical-session.target
+Requisite=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/qs
+# comes back by itself if it ever dies (e.g. around the lock screen)
+Restart=always
+RestartSec=1
+# only stop qs itself on restart; apps that were started from it keep running
+KillMode=process
+
+[Install]
+WantedBy=graphical-session.target

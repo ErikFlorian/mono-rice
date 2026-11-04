@@ -1,0 +1,53 @@
+# Colors for the Quickshell rice. Run through ~/.config/quickshell/scripts/setwall.sh
+[config]
+
+[templates.quickshell]
+input_path = '~/.config/matugen/templates/rice/quickshell.json'
+output_path = '~/.local/state/rice/colors.json'
+
+[templates.niri]
+input_path = '~/.config/matugen/templates/rice/niri-colors.kdl'
+output_path = '~/.config/niri/colors.kdl'
+
+[templates.foot]
+input_path = '~/.config/matugen/templates/rice/foot.ini'
+output_path = '~/.config/foot/themes/rice'
+
+[templates.gtk3]
+input_path = '~/.config/matugen/templates/rice/gtk3.css'
+output_path = '~/.config/gtk-3.0/gtk.css'
+
+[templates.hyprlock]
+input_path = '~/.config/matugen/templates/rice/hyprlock.conf'
+output_path = '~/.config/hypr/hyprlock-rice.conf'
+
+[templates.gtk4]
+input_path = '~/.config/matugen/templates/rice/gtk4.css'
+output_path = '~/.config/gtk-4.0/noctalia.css'
+
+[templates.btop]
+input_path = '~/.config/matugen/templates/rice/btop.theme'
+output_path = '~/.config/btop/themes/noctalia.theme'
+post_hook = 'pkill -USR2 -x btop || true'
+
+
+[templates.nvim]
+input_path = '~/.config/matugen/templates/rice/nvim-matugen.lua'
+output_path = '~/.config/nvim/lua/matugen.lua'
+
+[templates.vesktop]
+input_path = '~/.config/matugen/templates/rice/vesktop.theme.css'
+output_path = '~/.config/vesktop/themes/noctalia-material.theme.css'
+
+[templates.zen_chrome]
+input_path = '~/.config/matugen/templates/rice/zen-userChrome.css'
+output_path = '/home/kxnvra/.config/zen/uc8w8u3d.Default (release)/chrome/rice-userChrome.css'
+
+[templates.zen_content]
+input_path = '~/.config/matugen/templates/rice/zen-userContent.css'
+output_path = '/home/kxnvra/.config/zen/uc8w8u3d.Default (release)/chrome/rice-userContent.css'
+
+# full palette, used by tools/render.py for files matugen's engine can't parse (yazi)
+[templates.palette]
+input_path = '~/.config/matugen/templates/rice/palette.json'
+output_path = '~/.local/state/rice/palette.json'

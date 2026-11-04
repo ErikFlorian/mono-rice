@@ -1,0 +1,435 @@
+// niri config for kxnvra — adapted from a friend's config, rewired to use
+// YOUR stack (Noctalia, kitty, Zen Browser, your own rofi utilities) instead
+// of theirs (waybar/mako/awww, foot, librewolf, Mullvad, FL Studio...).
+// Validate after editing:  niri validate
+
+/////////////////////////////////////////////////////////////////////////////
+// INPUT
+/////////////////////////////////////////////////////////////////////////////
+
+input {
+    keyboard {
+        xkb {
+            layout "us,cz"
+            variant ",qwerty"
+            options "grp:alt_shift_toggle"
+        }
+    }
+
+    mouse {
+        accel-profile "flat"
+    }
+
+    touchpad {
+        tap
+
+        accel-profile "flat"
+    }
+
+    focus-follows-mouse
+    warp-mouse-to-focus mode="center-xy"
+
+    trackpoint
+}
+output "HDMI-A-1" {
+    mode "1920x1080@60.000"
+
+    scale 1.0
+
+    transform "normal"
+    position x=-245 y=-147
+}
+output "DP-4" {
+    mode "1920x1080@120.000"
+
+    scale 1.0
+
+    transform "normal"
+    position x=1920 y=-34
+}
+output "DP-2" {
+    mode "1920x1080@60.000"
+
+    scale 1.0
+
+    transform "normal"
+    position x=3840 y=0
+}
+output "DP-1" {
+    mode "1920x1080@60.000"
+
+    scale 1.0
+
+    transform "normal"
+    position x=3840 y=-34
+}
+
+gestures {
+    hot-corners {
+        top-left
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// OUTPUT — your actual monitors (laptop + Dell over the dock), not your
+// friend's DP-5 280Hz gaming monitor.
+/////////////////////////////////////////////////////////////////////////////
+
+output "eDP-1" {
+    mode "1920x1080@60.000"
+    scale 1.0
+    transform "normal"
+    position x=1675 y=-147
+}
+
+output "DP-3" {
+    mode "1920x1080@120.000"
+    scale 1.0
+    transform "normal"
+    position x=1920 y=0
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// LOOK AND FEEL
+/////////////////////////////////////////////////////////////////////////////
+
+layout {
+    gaps 0
+    // workspaces see-through, the wallpaper lives in the backdrop (stays put while switching)
+    background-color "transparent"
+
+    center-focused-column "never"
+
+    focus-ring {
+        off
+    }
+    border {
+        width 1
+
+        active-color "#77767b"
+
+        inactive-color "#000000"
+    }
+
+    default-column-width {
+        proportion 0.5
+    }
+
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+        proportion 1.0
+    }
+
+    struts {
+    }
+    shadow {
+        on
+        softness 18
+        spread 2
+        offset x=0 y=4
+        color "#00000080"
+    }
+}
+
+animations {
+    // a bit snappier than the defaults
+    workspace-switch {
+        spring damping-ratio=1.0 stiffness=900 epsilon=0.0001
+    }
+    horizontal-view-movement {
+        spring damping-ratio=1.0 stiffness=900 epsilon=0.0001
+    }
+    window-movement {
+        spring damping-ratio=1.0 stiffness=900 epsilon=0.0001
+    }
+    // plain quick fade for opening / closing windows
+    window-open {
+        duration-ms 150
+        curve "ease-out-quad"
+    }
+    window-close {
+        duration-ms 120
+        curve "ease-out-quad"
+    }
+}
+
+// wallpaper (awww) also shows behind the overview
+layer-rule {
+    match namespace="^awww"
+    place-within-backdrop true
+}
+// (no blur behind the shell popups, on purpose)
+
+cursor {
+    xcursor-size 24
+    xcursor-theme "volantes_cursors"
+}
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+screenshot-path "~/Pictures/shot-%Y%m%d-%H%M%S.png"
+
+// Tell GTK/Electron apps to skip drawing their own titlebars/shadows, since
+// niri draws neither. Apps must be restarted for this to take effect.
+prefer-no-csd
+
+/////////////////////////////////////////////////////////////////////////////
+// ENVIRONMENT
+/////////////////////////////////////////////////////////////////////////////
+
+environment {
+    ELECTRON_OZONE_PLATFORM_HINT "auto"
+    GDK_BACKEND "wayland,x11"
+    QT_QPA_PLATFORM "wayland;xcb"
+    MOZ_ENABLE_WAYLAND "1"
+    QT_SCALE_FACTOR "1"
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// AUTOSTART — you decided Noctalia doesn't suit niri well, so this switches
+// to waybar + a single static wallpaper (no matugen, no dynamic theming —
+// everything below is hardcoded dark colors instead).
+/////////////////////////////////////////////////////////////////////////////
+
+// rice: Quickshell shell + wallpaper/colors (old: spawn-at-startup "noctalia")
+// qs runs as a systemd user service now: systemctl --user status quickshell
+spawn-at-startup "/home/kxnvra/.config/quickshell/scripts/setwall.sh"
+spawn-at-startup "" 
+spawn-at-startup ""
+spawn-at-startup "nm-applet"
+spawn-at-startup "wl-paste" "--type" "text" "--watch" "cliphist" "store"
+spawn-at-startup "wl-paste" "--type" "image" "--watch" "cliphist" "store"
+spawn-at-startup ""
+spawn-at-startup ""
+spawn-at-startup ""
+spawn-at-startup "udiskie"
+// Idle + lock: swayidle runs ~/.local/bin/lock = hyprlock (timers in ~/.config/swayidle/config).
+// Noctalia's own lock screen is disabled in ~/.config/noctalia/config.toml.
+spawn-at-startup "swayidle" "-w"
+
+// NOTE: also dropped dbus-update-activation-environment and
+// xdg-desktop-portal-hyprland — both Hyprland-specific. niri activates the
+// right portal (xdg-desktop-portal-gnome, typically) over D-Bus on its own.
+
+/////////////////////////////////////////////////////////////////////////////
+// WORKSPACES
+/////////////////////////////////////////////////////////////////////////////
+
+// Named workspace declarations removed on purpose. "workspace "1"" (quoted)
+// creates a single GLOBAL workspace not tied to any monitor, which is why
+// Mod+number was collapsing everything onto your main screen. Leaving this
+// section empty lets niri fall back to its default per-monitor DYNAMIC
+// workspaces (each output gets its own independent 1,2,3... stack) — that's
+// what the bare (unquoted) numbers in the binds below now target.
+
+/////////////////////////////////////////////////////////////////////////////
+// WINDOW RULES — kept only the one that actually applies to an app you use
+// (Vesktop is Discord). Dropped OBS/Mullvad/FL Studio/librewolf rules since
+// you don't run those.
+/////////////////////////////////////////////////////////////////////////////
+
+// discord-stream-popout: floats Vesktop's screenshare popout in the corner
+// instead of tiling it.
+window-rule {
+    match app-id=r"^(equibop|[Dd]iscord|vesktop|WebCord)$" title=r"^(Discord Popout|.*['’]s Stream)$"
+    open-floating true
+    default-column-width { fixed 854; }
+    default-window-height { fixed 480; }
+    default-floating-position x=10 y=10 relative-to="bottom-right"
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// KEYBINDINGS   (Mod = SUPER)
+/////////////////////////////////////////////////////////////////////////////
+
+binds {
+    // ---- launcher (fuzzel — lighter/faster than rofi, black & white theme) ----
+    Mod+Space { spawn "/home/kxnvra/.config/quickshell/scripts/ipc.sh" "launcher" "fuzzel"; }
+    Mod+Shift+Space { spawn "fuzzel"; }
+
+    // Clipboard history — cliphist + fuzzel's --dmenu mode.
+    Mod+C { spawn "/home/kxnvra/.config/quickshell/scripts/ipc.sh" "clipboard" "noctalia" "msg" "panel-toggle" "clipboard"; }
+    Mod+Shift+C { spawn-sh "cliphist wipe && notify-send 'Cliphist' 'Historie schranky smazana'"; }
+
+	Mod+W { spawn "/home/kxnvra/.config/quickshell/scripts/ipc.sh" "wallpaper" "noctalia" "msg" "panel-toggle" "wallpaper"; }
+	
+    // Lock screen — hyprlock in the arch-glow style (~/.local/bin/lock).
+    Mod+L { spawn "/home/kxnvra/.local/bin/lock"; }
+    // Power menu — wlogout instead of Noctalia's session panel.
+    Mod+A { spawn "/home/kxnvra/.config/quickshell/scripts/ipc.sh" "dashboard"; }
+    Mod+I { spawn "/home/kxnvra/.config/quickshell/scripts/ipc.sh" "caffeine"; }
+    Mod+Tab { spawn "/home/kxnvra/.config/quickshell/scripts/ipc.sh" "windows"; }
+    Mod+X { spawn "/home/kxnvra/.config/quickshell/scripts/ipc.sh" "session" "noctalia" "msg" "panel-toggle" "session"; }
+
+    // NOTE: dropped Mod+W (Noctalia wallpaper panel) — you're on one static
+    // wallpaper via swaybg now, nothing to pick between. To change it, just
+    // edit the swaybg line in the autostart section below.
+
+    // NOTE: dropped Mod+Shift+W / Mod+I (Noctalia settings panel) — no
+    // equivalent in a plain waybar+rofi+swaybg stack. If you want a GTK
+    // theme/appearance picker, `nwg-look` is the usual pairing; say the word
+    // and I'll bind it.
+
+    // ---- window / session ----
+    Mod+Q { close-window; }
+    Mod+M { quit; }
+    Mod+V { toggle-window-floating; }
+    Mod+F { fullscreen-window; }
+
+    // ---- launchers ----
+    Mod+T { spawn "foot"; }
+    Mod+E { spawn "thunar"; }
+    Mod+S { spawn "kitty" "-e" "yazi"; }
+    Mod+N { spawn "bash" "/home/kxnvra/.local/bin/mac-changer-rofi.sh"; }
+
+    // Dropped: Mod+P (pseudo) and Mod+J (togglesplit) — dwindle-only concepts,
+    // no equivalent in niri's scrollable-tiling model.
+
+    // Keyboard layout switch (Alt+Shift on your Hyprland via switch_layout.sh)
+    // is already handled at the xkb level below via `options "grp:alt_shift_toggle"`
+    // in the input{} block up top — niri toggles the layout itself on that
+    // chord, no bind or script needed. If your script does something extra
+    // (like an on-screen indicator), tell me and I'll wire it in separately.
+
+    // ---- screenshots — your exact grim/slurp/wl-copy/notify-send workflow ----
+    Mod+Shift+S {
+        spawn-sh "mkdir -p ~/Pictures/Screenshots && grim -g \"$(slurp)\" - | tee ~/Pictures/Screenshots/screenshot_$(date +%Y-%m-%d_%H-%M-%S).png | wl-copy && notify-send 'Screenshot' 'Saved and copied to clipboard'" ;
+    }
+    Mod+Shift+F {
+        spawn-sh "mkdir -p ~/Pictures/Screenshots && grim - | tee ~/Pictures/Screenshots/screenshot_$(date +%Y-%m-%d_%H-%M-%S).png | wl-copy && notify-send 'Screenshot' 'Saved and copied to clipboard'" ;
+    }
+
+    // (Cliphist wipe bind lives up in the launcher section now, next to
+    // the clipboard picker, so both are together.)
+
+    // VT-switch trick for the monitor-wake bug on this dock
+    Mod+Shift+R { spawn-sh "sudo -n chvt 2 && sleep 1 && sudo -n chvt 1"; }
+
+    // ---- your other rofi utilities (not in your Hyprland config yet, but
+    // built this conversation — bound on free Shift combos) ----
+    Mod+Shift+B { spawn "/home/kxnvra/.local/bin/monitor-brightness-rofi.sh"; }
+    Mod+Shift+E { spawn "/home/kxnvra/.local/bin/equalizer-live-rofi.sh"; }
+    Mod+Shift+A { spawn "/home/kxnvra/.local/bin/screenshare-rofi.sh"; }
+
+    // ---- focus ----
+    Mod+Left  { focus-column-left; }
+    Mod+Right { focus-column-right; }
+
+    // ---- move window — Shift+arrows, matching your Hyprland muscle memory ----
+    Mod+Shift+Left  { move-column-left; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+Up    { move-window-up; }
+    Mod+Shift+Down  { move-window-down; }
+
+    // ---- workspaces 1..10 ----
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    Mod+0 { focus-workspace 10; }
+	Mod+Up   { focus-workspace-up; }
+	Mod+Down { focus-workspace-down; }
+
+    Mod+Ctrl+1 { move-column-to-workspace 1; }
+    Mod+Ctrl+2 { move-column-to-workspace 2; }
+    Mod+Ctrl+3 { move-column-to-workspace 3; }
+    Mod+Ctrl+4 { move-column-to-workspace 4; }
+    Mod+Ctrl+5 { move-column-to-workspace 5; }
+    Mod+Ctrl+6 { move-column-to-workspace 6; }
+    Mod+Ctrl+7 { move-column-to-workspace 7; }
+    Mod+Ctrl+8 { move-column-to-workspace 8; }
+    Mod+Ctrl+9 { move-column-to-workspace 9; }
+    Mod+Ctrl+0 { move-column-to-workspace 10; }
+	Mod+Ctrl+Up   { move-column-to-workspace-up; }
+	Mod+Ctrl+Down { move-column-to-workspace-down; }
+
+
+	
+    // NOTE: your Hyprland uses Mod+Shift+<number> to move a window to a
+    // workspace, but Mod+Shift+Left/Right/Up/Down above already claims
+    // Shift for directional window moves, and niri binds only take one
+    // combo per action, so number-moves live on Mod+Ctrl+<number> instead.
+
+    Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+    Mod+WheelScrollUp cooldown-ms=150 { focus-workspace-up; }
+
+    // Mod+left-drag moves, Mod+right-drag resizes — built into niri already.
+
+    // ---- resize ----
+    Mod+Minus       { set-column-width "-10%"; }
+    Mod+Equal       { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Equal { set-window-height "+10%"; }
+
+    // ---- media / brightness (your exact wpctl/brightnessctl flags) ----
+	XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume -l 10.0 @DEFAULT_AUDIO_SINK@ 5%+"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"; }
+    XF86AudioMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
+    XF86AudioMicMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
+    XF86MonBrightnessUp allow-when-locked=true { spawn-sh "brightnessctl -e4 -n2 set 5%+ && (qs ipc call osd brightness || true)"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn-sh "brightnessctl -e4 -n2 set 5%- && (qs ipc call osd brightness || true)"; }
+    XF86AudioNext allow-when-locked=true { spawn "playerctl" "next"; }
+    XF86AudioPause allow-when-locked=true { spawn "playerctl" "play-pause"; }
+    XF86AudioPlay allow-when-locked=true { spawn "playerctl" "play-pause"; }
+    XF86AudioPrev allow-when-locked=true { spawn "playerctl" "previous"; }
+
+    /////////////////////////////////////////////////////////////////////////
+    // niri-only navigation — no Hyprland counterpart, but useful for driving
+    // the scrolling layout. Delete anything you don't want.
+    /////////////////////////////////////////////////////////////////////////
+
+    Mod+Grave repeat=false { toggle-overview; }
+
+    Mod+Home { focus-column-first; }
+    Mod+End  { focus-column-last; }
+
+    Mod+BracketLeft  { consume-or-expel-window-left; }
+    Mod+BracketRight { consume-or-expel-window-right; }
+    Mod+Comma        { consume-window-into-column; }
+    Mod+Period       { expel-window-from-column; }
+
+    Mod+Shift+M { maximize-column; }
+    Mod+Ctrl+C  { center-column; }
+    Mod+Ctrl+F  { toggle-column-tabbed-display; }
+    // NOTE: Mod+Shift+F and Mod+Shift+C were your screenshot/cliphist binds
+    // above, so the niri-only maximize/center actions moved to spare combos.
+
+    Mod+Ctrl+V { switch-focus-between-floating-and-tiling; }
+
+    Mod+Shift+Slash { show-hotkey-overlay; }
+    Mod+Shift+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+}
+
+blur {
+    passes 3
+	offset 2.5
+    noise 0.0
+
+    saturation 1.0
+}
+
+window-rule {
+    draw-border-with-background false
+    opacity 0.9
+    background-effect {
+        blur true
+        xray false
+    }
+}
+
+
+
+
+// colors generated by matugen from the wallpaper
+include "colors.kdl"
+
+include "noctalia.kdl"

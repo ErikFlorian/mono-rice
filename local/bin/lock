@@ -1,0 +1,7 @@
+#!/bin/sh
+# Lock the session with hyprlock in the rice style (old: hyprlock-arch-glow.conf) (used by Mod+L, swayidle, Noctalia).
+# --wait: give it a moment to engage (before-sleep), since hyprlock doesn't fork like swaylock -f.
+pidof hyprlock >/dev/null && exit 0
+setsid -f hyprlock -c "$HOME/.config/hypr/hyprlock-rice.conf" >/dev/null 2>&1
+[ "$1" = "--wait" ] && sleep 1
+exit 0

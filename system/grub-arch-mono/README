@@ -1,0 +1,17 @@
+GRUB theme "arch-mono" — matches the Plymouth theme and tuigreet of the same name.
+Black screen, Arch logo outline with grey glow (same size/position as Plymouth draws it),
+minimal centred menu (selected = faint blue pill), countdown = thin blue line + "booting in N".
+
+Build:   python3 gen.py out        (fonts via grub-mkfont from JetBrains Mono, logo from
+                                    /usr/share/pixmaps/archlinux-logo.svg)
+Install: sudo cp -r --no-preserve=ownership out/. /boot/grub/themes/arch-mono/
+         GRUB_THEME="/boot/grub/themes/arch-mono/theme.txt" in /etc/default/grub
+         sudo grub-mkconfig -o /boot/grub/grub.cfg
+
+GRUB quirks found while building it:
+- font names are "<family> <Regular|Bold> <size>" — a Light weight needs its own family name
+- grub-mkfont -r wants ranges only (0x2022-0x2022), and the editor frame needs 0x2500-0x257f
+- the progress bar is at least ~24px and stretches its centre piece, so the centre piece is a
+  24px strip with a 2px line in the middle
+Test without rebooting: grub-mkstandalone -O x86_64-efi (memdisk with grub.cfg + theme) booted
+in qemu + OVMF with -device bochs-display,xres=1920,yres=1080, screenshots via monitor screendump.

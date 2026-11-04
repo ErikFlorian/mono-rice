@@ -1,0 +1,4 @@
+# rice: notifications are handled by Quickshell (Notifs.qml); keep this daemon from auto-starting
+[D-BUS Service]
+Name=org.freedesktop.Notifications
+Exec=/bin/false

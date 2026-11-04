@@ -1,0 +1,13 @@
+tuigreet in the style of the Plymouth theme "arch-mono": black screen, the classic Arch
+logo (fastfetch "arch") in Arch blue, username/password with • dots under it, dim clock.
+
+gen.py OUT [classic|outline|blocks] writes:
+  OUT/config.toml  -> /etc/tuigreet/config.toml   (greetd runs tuigreet --config it)
+  OUT/vtrgb        -> /etc/tuigreet/vtrgb         (VT palette: logo = #d0d0d0 ...)
+The palette is applied before greetd starts by
+  /etc/systemd/system/greetd.service.d/vt-palette.conf  (ExecStartPre=-/usr/bin/setvtrgb ...)
+
+Preview without logging out: tuigreet --mock --config /etc/tuigreet/config.toml
+(in a terminal emulator the colours are the terminal's, not the VT palette).
+The console font is ter-v24b (no ▀▄ half blocks, no katakana) — only use glyphs it has.
+Never restart greetd from inside a session, it ends the session.

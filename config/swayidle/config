@@ -1,0 +1,15 @@
+# Read by `swayidle -w` (started from ~/.config/niri/config.kdl).
+# ~/.local/bin/lock starts hyprlock (arch-glow); --wait gives it a second to lock
+# before suspend, since hyprlock doesn't fork like swaylock -f did.
+
+# loginctl lock-session
+lock '/home/kxnvra/.local/bin/lock'
+# lid close / systemctl suspend
+before-sleep '/home/kxnvra/.local/bin/lock --wait'
+
+# 2 min idle: lock
+timeout 120 '/home/kxnvra/.local/bin/lock'
+# 11 min: screens off (back on with any input)
+timeout 660 'niri msg action power-off-monitors' resume 'niri msg action power-on-monitors'
+# 15 min: suspend
+timeout 900 'systemctl suspend'

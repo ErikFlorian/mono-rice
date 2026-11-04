@@ -1,0 +1,18 @@
+Plymouth theme "arch-mono": black screen, the Arch logo draws itself as a glowing line,
+a minimal passphrase field (dots, red shake on a wrong passphrase), and after unlocking
+the logo fills with liquid as the boot progresses; full logo gets a bloom.
+
+Build + install after editing gen.py (look) or arch-mono.script.in (behaviour):
+  python3 gen.py out
+  sudo rm -rf /usr/share/plymouth/themes/arch-mono
+  sudo install -d /usr/share/plymouth/themes/arch-mono
+  sudo install -m 644 out/* /usr/share/plymouth/themes/arch-mono/
+  sudo plymouth-set-default-theme arch-mono
+  sudo mkinitcpio -P            # the theme lives inside the UKI initramfs
+
+Switch back to the Undertale one: sudo plymouth-set-default-theme sans && sudo mkinitcpio -P
+
+Test build: python3 gen.py out --test appends test-timeline.script (fakes a wrong and a
+right passphrase and the progress) and shows a frame counter. Every sprite in the script
+must stay referenced by a variable or Plymouth frees it. Logo comes from
+/usr/share/pixmaps/archlinux-logo.svg (package filesystem).

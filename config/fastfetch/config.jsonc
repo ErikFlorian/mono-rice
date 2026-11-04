@@ -1,0 +1,38 @@
+// fastfetch for the monochrome rice: ASCII cross on the left, grey info next to it.
+// Logo: ~/.config/fastfetch/cross.txt (regenerate: python3 ~/.local/share/ascii-wall/fetchcross.py 19)
+// Old config: ~/rice-backups/2026-11-04-noctalia/fastfetch-config.jsonc.bak
+{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "logo": {
+        "type": "file",
+        "source": "~/.config/fastfetch/cross.txt",
+        "position": "left",
+        "color": { "1": "38;5;250" },
+        "padding": { "top": 1, "left": 2, "right": 4 }
+    },
+    "display": {
+        "separator": "  ",
+        "color": { "keys": "38;5;242", "title": "38;5;252", "output": "38;5;248" },
+        "key": { "width": 9 }
+    },
+    "modules": [
+        "break",
+        { "type": "title", "format": "{user-name}@{host-name}" },
+        { "type": "custom", "format": "\u001b[38;5;238m──────────────────────────────" },
+        { "type": "os", "key": "os", "format": "{name}" },
+        { "type": "wm", "key": "wm", "format": "{pretty-name} {version}" },
+        { "type": "kernel", "key": "kernel", "format": "{release}" },
+        { "type": "packages", "key": "pkgs", "format": "{all}" },
+        { "type": "shell", "key": "shell", "format": "{pretty-name}" },
+        { "type": "terminal", "key": "term", "format": "{pretty-name}" },
+        { "type": "uptime", "key": "uptime" },
+        { "type": "memory", "key": "memory", "format": "{used} / {total}" },
+        {
+            "type": "command",
+            "key": "os age",
+            "text": "echo $(( ($(date +%s) - $(stat -c %W /)) / 86400 )) days"
+        },
+        "break",
+        { "type": "colors", "symbol": "block", "paddingLeft": 2 }
+    ]
+}

@@ -1,0 +1,6 @@
+#!/bin/sh
+# Intel e1000e (enp0s31f6) sometimes stops receiving after resume: link is up,
+# RX stays at 0, DHCP never answers. Reloading the driver fixes it.
+case "$1" in
+    post) modprobe -r e1000e && modprobe e1000e ;;
+esac

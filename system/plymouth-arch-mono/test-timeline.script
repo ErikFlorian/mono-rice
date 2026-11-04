@@ -1,0 +1,17 @@
+
+// ---- test only (gen.py --test): fakes a boot with a wrong and a right passphrase
+// (stretched out so slow screenshots can catch every phase)
+TEST = 1;
+fun test_tick(f) {
+    if (f == 150) on_password("Enter passphrase", 0);
+    if (f > 150 && f <= 400 && f % 25 == 0) on_password("Enter passphrase", Math.Int((f - 150) / 25));
+    if (f == 450) on_normal();
+    if (f == 480) on_password("Enter passphrase", 0);
+    if (f > 520 && f <= 670 && f % 25 == 0) on_password("Enter passphrase", Math.Int((f - 520) / 25));
+    if (f == 750) on_normal();
+    if (f > 800 && f <= 1400) on_progress(0, (f - 800) / 600);
+    if (f % 5 == 0) {
+        global.dbg = Sprite(Image.Text("frame " + f, 0.4, 0.4, 0.4));
+        global.dbg.SetPosition(4, 4, 20);
+    }
+}
