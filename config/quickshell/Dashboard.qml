@@ -89,6 +89,9 @@ PanelWindow {
     property string mode: "mono"
     FileView { path: Quickshell.env("HOME") + "/.local/state/rice/mode"; watchChanges: true; onFileChanged: reload(); onLoaded: w.mode = text().trim() || "mono" }
 
+    property string hostname: ""
+    FileView { path: "/etc/hostname"; onLoaded: w.hostname = text().trim() }
+
     property string uptime: ""
     FileView {
         id: up
@@ -146,7 +149,7 @@ PanelWindow {
                     Row {
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 10
-                        Txt { text: Quickshell.env("USER") + "@larptop" }
+                        Txt { text: Quickshell.env("USER") + "@" + w.hostname }
                         Txt { text: w.uptime; color: Theme.outline }
                     }
                     Txt {
