@@ -7,18 +7,18 @@
         "type": "file",
         "source": "~/.config/fastfetch/cross.txt",
         "position": "left",
-        "color": { "1": "38;5;250" },
+        "color": { "1": "38;5;255" },
         "padding": { "top": 1, "left": 2, "right": 4 }
     },
     "display": {
         "separator": "  ",
-        "color": { "keys": "38;5;242", "title": "38;5;252", "output": "38;5;248" },
+        "color": { "keys": "38;5;250", "title": "38;5;255", "output": "38;5;255" },
         "key": { "width": 9 }
     },
     "modules": [
         "break",
         { "type": "title", "format": "{user-name}@{host-name}" },
-        { "type": "custom", "format": "\u001b[38;5;238m──────────────────────────────" },
+        { "type": "custom", "format": "\u001b[38;5;245m──────────────────────────────" },
         { "type": "os", "key": "os", "format": "{name}" },
         { "type": "wm", "key": "wm", "format": "{pretty-name} {version}" },
         { "type": "kernel", "key": "kernel", "format": "{release}" },
