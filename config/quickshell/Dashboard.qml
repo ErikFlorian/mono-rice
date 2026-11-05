@@ -56,17 +56,21 @@ PanelWindow {
     Process {
         id: wifiGet
         running: true
-        command: ["sh", "-c", "nmcli radio wifi; nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY dev wifi list 2>/dev/null"]
+        // radio state, visible networks, then (after ---) the names of saved wifi connections
+        command: ["sh", "-c", "nmcli radio wifi; nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY dev wifi list 2>/dev/null; echo ---; nmcli -t -f NAME,TYPE connection show 2>/dev/null | grep ':802-11-wireless$'"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const lines = this.text.trim().split("\n");
+                const all = this.text.trim().split("\n");
+                const cut = all.indexOf("---");
+                const lines = cut >= 0 ? all.slice(0, cut) : all;
+                const saved = (cut >= 0 ? all.slice(cut + 1) : []).map(l => l.replace(/:802-11-wireless$/, "").replace(/\\:/g, ":"));
                 w.wifiOn = lines[0] === "enabled";
                 // one row per SSID: connected if any access point is in use, strongest signal
                 const by = {};
                 for (const l of lines.slice(1)) {
                     const p = l.replace(/\\:/g, "\u0001").split(":").map(x => x.replace(/\u0001/g, ":"));
                     if (!p[1]) continue;
-                    const n = by[p[1]] ?? (by[p[1]] = { ssid: p[1], active: false, signal: 0, secure: !!p[3] });
+                    const n = by[p[1]] ?? (by[p[1]] = { ssid: p[1], active: false, signal: 0, secure: !!p[3], saved: saved.includes(p[1]) });
                     n.active = n.active || p[0] === "*";
                     n.signal = Math.max(n.signal, parseInt(p[2]) || 0);
                 }
@@ -77,6 +81,38 @@ PanelWindow {
         }
     }
     Timer { interval: 8000; running: w.shown; repeat: true; onTriggered: wifiGet.running = true }
+
+    // connecting: saved / open networks go straight away, new secured ones ask for the
+    // password inline (row expands), errors are shown under the network
+    property string askSsid: ""        // network whose password field is open
+    property string busySsid: ""       // network being connected right now
+    property string wifiError: ""
+    property string errorSsid: ""
+    function connectWifi(n, password) {
+        if (busySsid !== "") return;
+        if (n.secure && !n.saved && password === undefined) { askSsid = n.ssid; errorSsid = ""; return; }
+        busySsid = n.ssid; errorSsid = ""; wifiError = "";
+        wifiConnect.command = n.saved ? ["nmcli", "connection", "up", "id", n.ssid]
+                            : password ? ["nmcli", "device", "wifi", "connect", n.ssid, "password", password]
+                            : ["nmcli", "device", "wifi", "connect", n.ssid];
+        wifiConnect.running = true;
+    }
+    Process {
+        id: wifiConnect
+        stderr: StdioCollector { id: wifiErr }
+        onExited: code => {
+            if (code === 0) { w.askSsid = ""; }
+            else {
+                w.errorSsid = w.busySsid;
+                const e = wifiErr.text.toLowerCase();
+                w.wifiError = e.includes("secrets") || e.includes("password") || e.includes("802-1x") ? "wrong password?" : "could not connect";
+                // a failed new network leaves a half-made profile behind; drop it so the password is asked again
+                if (w.askSsid === w.busySsid) Quickshell.execDetached(["nmcli", "connection", "delete", "id", w.busySsid]);
+            }
+            w.busySsid = "";
+            wifiGet.running = true;
+        }
+    }
 
     property string profile: ""
     Process {
@@ -299,28 +335,87 @@ PanelWindow {
                 }
                 Repeater {
                     model: w.wifiOn ? w.networks : []
-                    Rectangle {
+                    Column {
+                        id: net
                         required property var modelData
+                        readonly property bool asking: w.askSsid === modelData.ssid
                         width: col.width
-                        height: 24
-                        color: nm.containsMouse ? Theme.surfaceHigh : "transparent"
-                        Row {
-                            x: 6
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 10
-                            Txt {
-                                text: "▂▄▆█".slice(0, Math.max(1, Math.ceil(modelData.signal / 25))).padEnd(4, " ")
-                                color: modelData.active ? Theme.fg : Theme.outline
+
+                        Rectangle {
+                            width: col.width
+                            height: 24
+                            color: nm.containsMouse || net.asking ? Theme.surfaceHigh : "transparent"
+                            Row {
+                                x: 6
+                                anchors.verticalCenter: parent.verticalCenter
+                                spacing: 10
+                                Txt {
+                                    text: "▂▄▆█".slice(0, Math.max(1, Math.ceil(net.modelData.signal / 25))).padEnd(4, " ")
+                                    color: net.modelData.active ? Theme.fg : Theme.outline
+                                }
+                                Txt { text: net.modelData.ssid; color: net.modelData.active ? Theme.fg : Theme.fgDim }
+                                Txt {
+                                    color: w.errorSsid === net.modelData.ssid ? Theme.danger : Theme.outline
+                                    text: w.busySsid === net.modelData.ssid ? "connecting…"
+                                        : w.errorSsid === net.modelData.ssid ? w.wifiError
+                                        : net.modelData.active ? "connected"
+                                        : !net.modelData.secure ? "open"
+                                        : net.modelData.saved ? "saved" : ""
+                                }
                             }
-                            Txt { text: modelData.ssid; color: modelData.active ? Theme.fg : Theme.fgDim }
-                            Txt { text: modelData.active ? "connected" : (modelData.secure ? "" : "open"); color: Theme.outline }
+                            MouseArea {
+                                id: nm
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    if (net.modelData.active) return;
+                                    if (net.asking) { w.askSsid = ""; return; }
+                                    w.connectWifi(net.modelData);
+                                }
+                            }
                         }
-                        MouseArea {
-                            id: nm
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: if (!modelData.active) w.sh("nmcli dev wifi connect \"$1\" >/dev/null 2>&1 && notify-send -a wifi \"connected\" \"$1\" || nm-connection-editor", modelData.ssid)
+
+                        // password row for a new secured network
+                        Rectangle {
+                            visible: net.asking
+                            width: col.width
+                            height: 30
+                            color: Theme.surfaceHigh
+                            Row {
+                                x: 30
+                                anchors.verticalCenter: parent.verticalCenter
+                                spacing: 8
+                                Txt { text: "password"; color: Theme.outline }
+                                Rectangle {
+                                    width: col.width - 170
+                                    height: 22
+                                    color: Theme.bg
+                                    border.color: pw.activeFocus ? Theme.outline : Theme.line
+                                    border.width: 1
+                                    TextInput {
+                                        id: pw
+                                        anchors.fill: parent
+                                        anchors.leftMargin: 6
+                                        anchors.rightMargin: 6
+                                        verticalAlignment: TextInput.AlignVCenter
+                                        echoMode: TextInput.Password
+                                        passwordCharacter: "•"
+                                        color: Theme.fg
+                                        font.family: Theme.font
+                                        font.pixelSize: Theme.size
+                                        clip: true
+                                        onVisibleChanged: if (visible) { text = ""; forceActiveFocus(); }
+                                        Keys.onEscapePressed: w.askSsid = ""
+                                        onAccepted: if (text.length) w.connectWifi(net.modelData, text)
+                                    }
+                                }
+                                Txt {
+                                    text: "[ ok ]"
+                                    color: okMa.containsMouse ? Theme.fg : Theme.fgDim
+                                    MouseArea { id: okMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: if (pw.text.length) w.connectWifi(net.modelData, pw.text) }
+                                }
+                            }
                         }
                     }
                 }
