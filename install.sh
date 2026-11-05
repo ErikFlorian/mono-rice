@@ -3,12 +3,23 @@
 #
 #   ./install.sh          copy configs (existing files are backed up first)
 #   ./install.sh --boot   also build + install the grey GRUB / Plymouth / tuigreet look (sudo)
+#   ./install.sh --yes    install missing packages without asking (used by Hyprland-Niri-dots)
 #
 # Paths inside the configs are written for /home/kxnvra; they are rewritten to $HOME.
 set -e
 cd "$(dirname "$0")"
 REPO=$(pwd)
 . ./manifest.sh
+
+BOOT=0; YES=0
+for a in "$@"; do
+    case "$a" in
+        --boot) BOOT=1 ;;
+        -y|--yes) YES=1 ;;
+        -h|--help) sed -n '2,9p' "$0"; exit 0 ;;
+        *) echo "unknown option: $a" >&2; exit 2 ;;
+    esac
+done
 
 PKGS="niri quickshell awww matugen foot fastfetch hyprlock swayidle cliphist wl-clipboard
 brightnessctl power-profiles-daemon networkmanager bluez pipewire wireplumber grim slurp
@@ -19,8 +30,12 @@ missing=""
 for p in $PKGS; do pacman -Qq "$p" >/dev/null 2>&1 || missing="$missing $p"; done
 if [ -n "$missing" ]; then
     echo "missing:$missing"
-    echo "install with: sudo pacman -S --needed$missing"
-    printf "continue anyway? [y/N] "; read -r a; [ "$a" = y ] || exit 1
+    if [ "$YES" = 1 ]; then
+        sudo pacman -S --needed --noconfirm $missing
+    else
+        printf "install them now with pacman? [Y/n] "; read -r a
+        case "$a" in n|N) echo "continuing without them" ;; *) sudo pacman -S --needed $missing ;; esac
+    fi
 fi
 
 echo "== configs"
@@ -61,10 +76,16 @@ systemctl --user mask swaync.service >/dev/null 2>&1 || true   # quickshell is t
 systemctl --user enable quickshell.service
 
 echo "== colors + wallpaper"
-mkdir -p "$HOME/.local/state/rice"
+mkdir -p "$HOME/.local/state/rice" "$HOME/Wallpapers"
+# colours first, straight from matugen: niri's config includes colors.kdl, so it
+# must exist even when this runs outside a niri session (fresh install)
+matugen -q -c "$HOME/.config/matugen/rice.toml" -m dark -t scheme-monochrome image "$HOME/Wallpapers/ascii-hands.png" --source-color-index 0 \
+    || echo "(matugen failed - run ~/.config/quickshell/scripts/setwall.sh inside niri)"
+printf '%s' "$HOME/Wallpapers/ascii-hands.png" > "$HOME/.local/state/rice/wallpaper"
+printf 'mono' > "$HOME/.local/state/rice/mode"
 "$HOME/.config/quickshell/scripts/setwall.sh" "$HOME/Wallpapers/ascii-hands.png" mono || echo "(run setwall.sh again inside niri)"
 
-if [ "$1" = "--boot" ]; then
+if [ "$BOOT" = 1 ]; then
     echo "== boot look (GRUB, Plymouth, tuigreet)"
     for d in grub-arch-mono plymouth-arch-mono tuigreet-arch-mono; do
         (cd "$HOME/.local/share/$d" && python3 -I gen.py out >/dev/null)
